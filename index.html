@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контрольна робота №1 — Електродинаміка (частина 2)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, -apple-system, sans-serif; }
+  html,body { height:100%; }
+  body {
+    min-height:100vh;
+    background: linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);
+    background-attachment: fixed;
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(0,229,255,.18), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(155,81,255,.20), transparent 45%),
+      radial-gradient(circle at 60% 10%, rgba(255,64,129,.12), transparent 35%);
+  }
+  .wrap { position:relative; width:100%; max-width:860px; z-index:1; }
+  .glass {
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    padding:34px 38px;
+  }
+  .hidden { display:none !important; }
+  h1 { font-size:1.7rem; font-weight:700; margin-bottom:10px;
+       background:linear-gradient(90deg,#00e5ff,#b388ff);
+       -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .topic { font-size:1.05rem; color:#e3e6ff; margin-bottom:8px; line-height:1.45; }
+  .meta { font-size:.85rem; color:#aab; margin-bottom:20px; }
+  label { display:block; margin:12px 0 4px; font-size:.9rem; color:#cfd3ff; }
+  input {
+    width:100%; padding:12px 16px; border-radius:12px;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(0,0,0,.28); color:#fff; font-size:1rem; outline:none;
+    transition:border .2s;
+  }
+  input:focus { border-color:#00e5ff; }
+  button.main {
+    margin-top:22px; width:100%; padding:14px;
+    border:none; border-radius:14px; cursor:pointer;
+    font-size:1.05rem; font-weight:600; color:#081018;
+    background:linear-gradient(90deg,#00e5ff,#7c4dff);
+    box-shadow:0 8px 24px rgba(0,229,255,.35);
+    transition:transform .15s, box-shadow .15s;
+  }
+  button.main:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,229,255,.45); }
+  .warn { margin-top:16px; font-size:.78rem; color:#ffb3b3; line-height:1.5; }
+  .banner { padding:12px 16px; border-radius:12px; margin:12px 0; font-size:.95rem; }
+  .banner.ok { background:rgba(46,213,115,.18); border:1px solid rgba(46,213,115,.5); color:#7bed9f; }
+  .banner.bad { background:rgba(255,71,87,.15); border:1px solid rgba(255,71,87,.5); color:#ff7b84; }
+
+  /* Test screen */
+  .topbar { display:flex; align-items:center; gap:18px; margin-bottom:22px; }
+  .progress { flex:1; height:8px; border-radius:99px; background:rgba(255,255,255,.15); overflow:hidden; }
+  #progress-fill { height:100%; width:0%; border-radius:99px;
+    background:linear-gradient(90deg,#00e5ff,#7c4dff); transition:width .3s; }
+  .topinfo { display:flex; align-items:center; gap:14px; font-size:.9rem; color:#dfe3ff; white-space:nowrap; }
+  #viol-counter { color:#ffd166; font-weight:600; }
+  .timer { position:relative; width:64px; height:64px; flex:none; }
+  .timer svg { transform:rotate(-90deg); }
+  .timer circle { fill:none; stroke-width:5; }
+  .timer .bg { stroke:rgba(255,255,255,.15); }
+  .timer .fg { stroke:#00e5ff; stroke-linecap:round; stroke-dasharray:175.93; stroke-dashoffset:0; transition:stroke .3s; }
+  .timer span {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:1.15rem; font-weight:700; color:#fff;
+  }
+  .timer.danger .fg { stroke:#ff4757; }
+  .timer.danger span { color:#ff4757; animation:pulse .5s infinite alternate; }
+  @keyframes pulse { from{transform:scale(1);} to{transform:scale(1.18);} }
+
+  .badge {
+    display:inline-block; padding:5px 14px; border-radius:99px; font-size:.78rem; font-weight:600;
+    background:rgba(124,77,255,.25); border:1px solid rgba(124,77,255,.6); color:#d0b3ff; margin-bottom:14px;
+  }
+  #q-text { font-size:1.15rem; line-height:1.5; margin-bottom:22px; font-weight:600; }
+  .options { display:grid; gap:12px; }
+  .opt {
+    text-align:left; padding:14px 18px; border-radius:14px; cursor:pointer;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.18);
+    color:#f0f2ff; font-size:1rem; transition:background .15s, transform .15s, border-color .15s;
+  }
+  .opt:hover { background:rgba(0,229,255,.15); border-color:rgba(0,229,255,.55); transform:translateX(4px); }
+  .opt .letter { font-weight:700; color:#00e5ff; margin-right:10px; }
+
+  /* Toasts */
+  #toasts { position:fixed; top:16px; right:16px; z-index:999; display:flex; flex-direction:column; gap:10px; }
+  .toast {
+    padding:12px 18px; border-radius:12px; font-size:.9rem; max-width:320px;
+    background:rgba(255,71,87,.20); border:1px solid rgba(255,71,87,.65); color:#ffd7d9;
+    backdrop-filter:blur(12px); box-shadow:0 8px 24px rgba(0,0,0,.4);
+    animation:slideIn .3s ease;
+  }
+  @keyframes slideIn { from{transform:translateX(60px); opacity:0;} to{transform:none; opacity:1;} }
+
+  .big-grade { font-size:3rem; font-weight:800; margin:10px 0;
+    background:linear-gradient(90deg,#00e5ff,#b388ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .stats { font-size:1rem; line-height:1.9; color:#e3e6ff; }
+  .lock-icon { font-size:3rem; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div class="wrap">
+
+  <!-- START -->
+  <section id="scr-start" class="glass">
+    <h1>Контрольна робота №1 з фізики</h1>
+    <p class="topic">Тема: «Електродинаміка. Частина 2. Електричний струм у різних середовищах і магнітне поле»</p>
+    <p class="meta">11 клас • 30 питань (4 рівні складності, 4 прості задачі) • 12 с на питання, 15 с на задачу • оцінювання за 11-бальною системою</p>
+    <div id="unlock-banner" class="banner ok hidden">🔓 Доступ відновлено вчителем</div>
+    <label for="inp-name">Прізвище та ім'я</label>
+    <input id="inp-name" type="text" placeholder="Наприклад: Шевченко Тарас" autocomplete="off">
+    <label for="inp-group">Група</label>
+    <input id="inp-group" type="text" placeholder="Наприклад: 11-А" autocomplete="off">
+    <button class="main" id="btn-start">Почати тест</button>
+    <p class="warn">⚠️ Тест захищено від списування: перемикання вкладок, вихід із повноекранного режиму, F12, Ctrl+C, Ctrl+V, правий клік і PrintScreen заборонені. Після 3 порушень тест завершується автоматично з 0 балів. Повторне проходження на цьому пристрої заблоковано (скидання — дистанційно через Telegram-бота вчителя).</p>
+  </section>
+
+  <!-- TEST -->
+  <section id="scr-test" class="glass hidden">
+    <div class="topbar">
+      <div class="progress"><div id="progress-fill"></div></div>
+      <div class="topinfo">
+        <span id="q-counter"></span>
+        <span id="viol-counter">⚠️ 0/3</span>
+        <div class="timer" id="timer-box">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle class="bg" cx="32" cy="32" r="28"></circle>
+            <circle class="fg" id="timer-circle" cx="32" cy="32" r="28"></circle>
+          </svg>
+          <span id="timer-text">12</span>
+        </div>
+      </div>
+    </div>
+    <div id="q-level" class="badge"></div>
+    <h2 id="q-text"></h2>
+    <div id="q-options" class="options"></div>
+  </section>
+
+  <!-- BLOCKED -->
+  <section id="scr-block" class="glass hidden">
+    <div class="lock-icon">🔒</div>
+    <h1>Доступ заблоковано</h1>
+    <div id="block-info" class="stats"></div>
+    <p class="warn">Повторне проходження на цьому пристрої заборонено. Для скидання блокування зверніться до вчителя (команда скидання через Telegram-бота).</p>
+  </section>
+
+  <!-- FINISH -->
+  <section id="scr-finish" class="glass hidden">
+    <h1>Тест завершено</h1>
+    <div class="big-grade" id="fin-grade"></div>
+    <div id="fin-stats" class="stats"></div>
+    <p class="warn" style="color:#9fe8b9;">📨 Результат надіслано вчителю в Telegram. Повторне проходження на цьому пристрої заблоковано.</p>
+  </section>
+
+</div>
+
+<script>
+/* ============ КОНФІГУРАЦІЯ TELEGRAM ============ */
+const TG_TOKEN = '8977852457:AAH1jJz54Wb5WFxNn1CrpBlRKbML7Pf_2zs';
+const TG_CHAT  = 622617127;
+const LS_RESULTS = 'phys11_ctrl2_results';
+const LS_OFFSET  = 'phys11_tg_offset';
+const TEST_TOPIC = 'Електродинаміка. Частина 2. Електричний струм у різних середовищах і магнітне поле (Контрольна робота №1)';
+
+/* ============ ПИТАННЯ (30 шт: 8+9+9+4) ============ */
+const QUESTIONS = [
+ // РІВЕНЬ 1 (8)
+ {lvl:1,t:12,q:'Які заряджені частинки створюють електричний струм у металах?',o:['Електрони','Позитивні іони','Негативні іони','Дірки'],c:0},
+ {lvl:1,t:12,q:'Носіями струму в розчинах і розплавах електролітів є:',o:['Іони обох знаків','Тільки електрони','Тільки дірки','Нейтральні молекули'],c:0},
+ {lvl:1,t:12,q:'Власна провідність напівпровідників зумовлена рухом:',o:['Електронів і дірок','Тільки електронів','Тільки іонів','Тільки дірок'],c:0},
+ {lvl:1,t:12,q:'Електричний струм у газах створюють:',o:['Електрони та іони обох знаків','Тільки позитивні іони','Тільки електрони','Тільки негативні іони'],c:0},
+ {lvl:1,t:12,q:'Носіями електричного струму у вакуумі є:',o:['Електрони','Іони','Дірки','Протони'],c:0},
+ {lvl:1,t:12,q:'Одиниця магнітної індукції в СІ:',o:['Тесла','Вебер','Генрі','Ампер'],c:0},
+ {lvl:1,t:12,q:'Одиниця магнітного потоку в СІ:',o:['Вебер','Тесла','Генрі','Вольт'],c:0},
+ {lvl:1,t:12,q:'Одиниця індуктивності в СІ:',o:['Генрі','Вебер','Тесла','Фарад'],c:0},
+
+ // РІВЕНЬ 2 (9)
+ {lvl:2,t:12,q:'Формула сили Ампера:',o:['F = BIL·sinα','F = qvB·sinα','F = qE','F = BIL·cosα'],c:0},
+ {lvl:2,t:12,q:'Формула сили Лоренца:',o:['F = qvB·sinα','F = BIL·sinα','F = k·q₁q₂/r²','F = mg'],c:0},
+ {lvl:2,t:12,q:'Формула магнітного потоку через контур (α — кут між індукцією та нормаллю):',o:['Φ = B·S·cosα','Φ = B·S·sinα','Φ = B/S','Φ = B·I·L'],c:0},
+ {lvl:2,t:12,q:'Енергія магнітного поля котушки індуктивністю L зі струмом I:',o:['W = LI²/2','W = LI/2','W = I²/L','W = L²I/2'],c:0},
+ {lvl:2,t:12,q:'ЕРС електромагнітної індукції за модулем дорівнює:',o:['ΔΦ/Δt','Δt/ΔΦ','Φ·t','B·S'],c:0},
+ {lvl:2,t:12,q:'З підвищенням температури опір металів:',o:['Зростає','Зменшується','Не змінюється','Спочатку зменшується, потім зростає'],c:0},
+ {lvl:2,t:12,q:'З підвищенням температури опір напівпровідників:',o:['Зменшується','Зростає','Не змінюється','Стає нескінченним'],c:0},
+ {lvl:2,t:12,q:'p-n-перехід у напівпровіднику:',o:['Пропускає струм лише в одному напрямку','Пропускає струм у обох напрямках однаково','Не пропускає струм взагалі','Має нескінченний опір у обох напрямках'],c:0},
+ {lvl:2,t:12,q:'ЕРС самоіндукції в котушці індуктивністю L при зміні струму за час Δt:',o:['L·ΔI/Δt','L·ΔI·Δt','L/ΔI·Δt','L·Δt/ΔI'],c:0},
+
+ // РІВЕНЬ 3 (9)
+ {lvl:3,t:12,q:'Напрям сили Ампера, що діє на провідник зі струмом у магнітному полі, визначають за:',o:['Правилом лівої руки','Правилом правої руки','Правилом свердлика','Правилом Ленца'],c:0},
+ {lvl:3,t:12,q:'Сила Лоренца не виконує роботи, оскільки вона:',o:['Перпендикулярна до швидкості частинки','Спрямована вздовж швидкості','Дорівнює нулю','Компенсується силою Ампера'],c:0},
+ {lvl:3,t:12,q:'Два паралельні провідники зі струмами одного напрямку:',o:['Притягуються','Відштовхуються','Не взаємодіють','Спочатку притягуються, потім відштовхуються'],c:0},
+ {lvl:3,t:12,q:'Період обертання зарядженої частинки в однорідному магнітному полі НЕ залежить від:',o:['Швидкості частинки','Індукції поля','Маси частинки','Заряду частинки'],c:0},
+ {lvl:3,t:12,q:'При електролізі силу струму збільшили вдвічі, а час проходження струму зменшили вдвічі. Маса речовини на електроді:',o:['Не зміниться','Зросте вдвічі','Зменшиться вдвічі','Зросте вчетверо'],c:0},
+ {lvl:3,t:12,q:'Донорна домішка у напівпровіднику забезпечує провідність:',o:['Електронну (n-типу)','Діркову (p-типу)','Іонну','Відсутню (носіїв немає)'],c:0},
+ {lvl:3,t:12,q:'Лінії магнітної індукції поля провідника зі струмом:',o:['Замкнені','Починаються на північному полюсі','Починаються на позитивному заряді','Є прямими променями'],c:0},
+ {lvl:3,t:12,q:'Надпровідність — це явище, за якого:',o:['Опір провідника стає рівним нулю','Опір провідника стає нескінченним','Струм тече без магнітного поля','Зникає заряд електронів'],c:0},
+ {lvl:3,t:12,q:'Правило Ленца визначає напрям:',o:['Індукційного струму','Сили Ампера','Сили Лоренца','Магнітної індукції'],c:0},
+
+ // РІВЕНЬ 4 — ЗАДАЧІ (4 шт по 15 с, прості одиниці)
+ {lvl:4,t:15,q:'Задача. На прямий провідник довжиною 1 м зі струмом 1 А діє однорідне магнітне поле з індукцією 1 Тл перпендикулярно до провідника. Знайдіть силу Ампера (Н).',o:['1','2','0,5','10'],c:0},
+ {lvl:4,t:15,q:'Задача. На заряд 1 Кл, що рухається зі швидкістю 1 м/с перпендикулярно до ліній магнітного поля з індукцією 1 Тл, діє сила Лоренца (Н):',o:['1','2','0,5','10'],c:0},
+ {lvl:4,t:15,q:'Задача. Магнітне поле з індукцією 1 Тл пронизує контур площею 1 м², перпендикулярний до ліній індукції. Магнітний потік (Вб):',o:['1','2','0,5','10'],c:0},
+ {lvl:4,t:15,q:'Задача. Енергія магнітного поля котушки індуктивністю 2 Гн зі струмом 2 А (Дж):',o:['4','2','8','1'],c:0}
+];
+
+/* ============ СТАН ============ */
+let deck=[], idx=0, correct=0, violations=0, running=false, answered=false;
+let timerInt=null, ticksLeft=0, ticksTotal=0, lastViol=0;
+const CIRC = 175.93;
+const $ = id => document.getElementById(id);
+
+/* ============ ДОПОМІЖНІ ============ */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function norm(s){return (s||'').toLowerCase().replace(/[\s\u00A0]+/g,' ').trim();}
+function normKey(name,group){return norm(name)+'|'+norm(group);}
+function getRecords(){try{return JSON.parse(localStorage.getItem(LS_RESULTS)||'{}');}catch(e){return {};}}
+function saveRecords(r){localStorage.setItem(LS_RESULTS,JSON.stringify(r));}
+function show(id){['scr-start','scr-test','scr-block','scr-finish'].forEach(s=>$(s).classList.add('hidden'));$(id).classList.remove('hidden');}
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  $('toasts').appendChild(t); setTimeout(()=>t.remove(),3500);
+}
+
+/* ============ TELEGRAM ============ */
+async function sendTG(text){
+  const chunks=[]; for(let i=0;i<text.length;i+=4000) chunks.push(text.slice(i,i+4000));
+  for(const ch of chunks){
+    try{
+      await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT}&text=${encodeURIComponent(ch)}`);
+    }catch(e){}
+  }
+}
+function handleCommand(text){
+  const low=text.toLowerCase();
+  if(!low.startsWith('/скинути')) return;
+  const rest=text.substring(8).trim();
+  if(!rest) return;
+  const lowRest=rest.toLowerCase();
+  if(lowRest==='всі'||lowRest==='усі'){
+    saveRecords({});
+    sendTG('✅ Очищено всі записи');
+    unlockNotice(); return;
+  }
+  const tok=rest.split(/\s+/);
+  if(tok.length<2){ sendTG('⚠️ Формат: /скинути Прізвище Ім\'я Група або /скинути всі'); return; }
+  const fam=tok[0], im=tok[1], gr=tok.slice(2).join(' ');
+  const recs=getRecords(); let foundKey=null;
+  for(const k in recs){
+    if(norm(recs[k].name)===norm(fam+' '+im) && norm(recs[k].group)===norm(gr)){ foundKey=k; break; }
+  }
+  if(foundKey){
+    const r=recs[foundKey]; delete recs[foundKey]; saveRecords(recs);
+    sendTG(`✅ Скинуто: ${r.name}, ${r.group}`);
+    unlockNotice();
+    if(running===false && !$('scr-block').classList.contains('hidden')){ show('scr-start'); }
+  } else {
+    sendTG('⚠️ Такого запису немає на цьому пристрої');
+  }
+}
+function unlockNotice(){
+  sessionStorage.setItem('phys11_unlock_notice','1');
+  $('unlock-banner').classList.remove('hidden');
+}
+async function tgPoll(){
+  try{
+    const off=parseInt(localStorage.getItem(LS_OFFSET)||'0',10);
+    const r=await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=${off}&timeout=0`);
+    const j=await r.json();
+    if(!j.ok||!Array.isArray(j.result)) return;
+    let maxOff=off;
+    for(const u of j.result){
+      if(u.update_id>=maxOff) maxOff=u.update_id+1;
+      const m=u.message;
+      if(m && m.chat && m.chat.id===TG_CHAT && typeof m.text==='string') handleCommand(m.text.trim());
+    }
+    if(j.result.length) localStorage.setItem(LS_OFFSET,String(maxOff));
+  }catch(e){}
+}
+
+/* ============ ПОРУШЕННЯ ============ */
+function addViolation(reason){
+  if(!running) return;
+  const now=Date.now();
+  if(now-lastViol<800) return;
+  lastViol=now;
+  violations++;
+  $('viol-counter').textContent=`⚠️ ${violations}/3`;
+  toast(`⚠️ Порушення ${violations}/3: ${reason}`);
+  if(violations>=3) finish(true);
+}
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) addViolation('перемикання вкладки'); });
+window.addEventListener('blur',()=>addViolation('втрата фокусу вікна'));
+document.addEventListener('fullscreenchange',()=>{
+  if(running && !document.fullscreenElement){
+    addViolation('вихід з повноекранного режиму');
+    try{ document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
+  }
+});
+document.addEventListener('contextmenu',e=>{ e.preventDefault(); addViolation('правий клік'); });
+['copy','cut','paste'].forEach(ev=>document.addEventListener(ev,e=>{ e.preventDefault(); addViolation(ev==='paste'?'вставка (Ctrl+V)':ev==='copy'?'копіювання (Ctrl+C)':'вирізання'); }));
+document.addEventListener('keydown',e=>{
+  if(e.key==='F12'){ e.preventDefault(); addViolation('F12 (DevTools)'); }
+  if(e.ctrlKey && (e.key==='c'||e.key==='C'||e.key==='v'||e.key==='V')){ e.preventDefault(); addViolation((e.key.toLowerCase()==='c'?'Ctrl+C':'Ctrl+V')); }
+  if(e.key==='PrintScreen'){ e.preventDefault(); addViolation('PrintScreen'); }
+});
+
+/* ============ ТАЙМЕР ============ */
+function startTimer(sec){
+  clearInterval(timerInt);
+  ticksTotal=sec*10; ticksLeft=ticksTotal;
+  $('timer-box').classList.remove('danger');
+  $('timer-text').textContent=sec;
+  $('timer-circle').style.strokeDashoffset=0;
+  timerInt=setInterval(()=>{
+    ticksLeft--;
+    const s=Math.ceil(ticksLeft/10);
+    $('timer-text').textContent=s;
+    $('timer-circle').style.strokeDashoffset=CIRC*(1-ticksLeft/ticksTotal);
+    if(s<=5) $('timer-box').classList.add('danger');
+    if(ticksLeft<=0){ clearInterval(timerInt); answer(null); }
+  },100);
+}
+
+/* ============ ТЕСТ ============ */
+function renderQuestion(){
+  answered=false;
+  const q=deck[idx];
+  $('q-counter').textContent=`Питання ${idx+1} / ${deck.length}`;
+  $('progress-fill').style.width=(idx/deck.length*100)+'%';
+  $('q-level').textContent=`Рівень ${q.lvl}${q.lvl===4?' • задача':''} • ${q.t} с`;
+  $('q-text').textContent=q.q;
+  const box=$('q-options'); box.innerHTML='';
+  const letters=['А','Б','В','Г'];
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt';
+    b.innerHTML=`<span class="letter">${letters[i]}</span>${o.text}`;
+    b.onclick=()=>answer(i);
+    box.appendChild(b);
+  });
+  startTimer(q.t);
+}
+function answer(choice){
+  if(!running||answered) return;
+  answered=true;
+  clearInterval(timerInt);
+  const q=deck[idx];
+  const ok = choice!==null && q.opts[choice].correct;
+  if(ok) correct++;
+  idx++;
+  if(idx>=deck.length) finish(false);
+  else renderQuestion();
+}
+function finish(forced){
+  if(!running) return;
+  running=false;
+  clearInterval(timerInt);
+  $('progress-fill').style.width='100%';
+  if(document.fullscreenElement){ try{ document.exitFullscreen().catch(()=>{}); }catch(e){} }
+  const total=deck.length;
+  const grade=forced?0:Math.round(correct/total*11);
+  const name=norm(document.getElementById('inp-name').value);
+  const group=norm(document.getElementById('inp-group').value);
+  const now=new Date();
+  // збереження запису (блокування повторного проходження)
+  const recs=getRecords();
+  recs[normKey(name,group)]={name:document.getElementById('inp-name').value.trim(),group:document.getElementById('inp-group').value.trim(),date:now.toISOString(),grade,correct:forced?0:correct,total,violations};
+  saveRecords(recs);
+  sessionStorage.removeItem('phys11_unlock_notice');
+  // екран результатів
+  $('fin-grade').textContent=`Оцінка: ${grade} з 11`;
+  $('fin-stats').innerHTML=
+    `👤 ${document.getElementById('inp-name').value.trim()} • група ${document.getElementById('inp-group').value.trim()}<br>`+
+    `✅ Правильних відповідей: ${correct} з ${total}<br>`+
+    `⚠️ Порушень: ${violations}${forced?' — тест перервано автоматично':''}<br>`+
+    `📅 ${now.toLocaleString('uk-UA')}`;
+  show('scr-finish');
+  // надсилання в Telegram (лише підсумок, без деталей відповідей)
+  const summary=
+`📊 Контрольна робота №1 (11 клас)
+Тема: ${TEST_TOPIC}
+👤 Учень: ${document.getElementById('inp-name').value.trim()}
+👥 Група: ${document.getElementById('inp-group').value.trim()}
+📅 Дата: ${now.toLocaleString('uk-UA')}
+✅ Правильних відповідей: ${correct}/${total}
+🎯 Оцінка: ${grade}/11
+⚠️ Порушень: ${violations}${forced?' (тест перервано за порушення)':''}`;
+  sendTG(summary);
+}
+function startTest(){
+  const nameEl=$('inp-name'), groupEl=$('inp-group');
+  if(!nameEl.value.trim()||!groupEl.value.trim()){ toast('⚠️ Введіть прізвище, ім\'я та групу'); return; }
+  const key=normKey(nameEl.value,groupEl.value);
+  const recs=getRecords();
+  if(recs[key]){
+    const r=recs[key];
+    $('block-info').innerHTML=
+      `👤 ${r.name} • група ${r.group}<br>`+
+      `📅 Дата попереднього проходження: ${new Date(r.date).toLocaleString('uk-UA')}<br>`+
+      `🎯 Отримана оцінка: ${r.grade} з 11`;
+    show('scr-block');
+    return;
+  }
+  // повноекранний режим і старт
+  const go=()=>{
+    deck=shuffle(QUESTIONS.map(q=>{
+      const opts=shuffle(q.o.map((t,i)=>({text:t,correct:i===q.c})));
+      return {lvl:q.lvl,t:q.t,q:q.q,opts};
+    }));
+    idx=0; correct=0; violations=0; running=true;
+    $('viol-counter').textContent='⚠️ 0/3';
+    show('scr-test');
+    renderQuestion();
+  };
+  try{
+    document.documentElement.requestFullscreen().then(go).catch(go);
+  }catch(e){ go(); }
+}
+$('btn-start').onclick=startTest;
+
+/* ============ ІНІЦІАЛІЗАЦІЯ ============ */
+if(sessionStorage.getItem('phys11_unlock_notice')) $('unlock-banner').classList.remove('hidden');
+tgPoll();
+setInterval(tgPoll,15000);
+</script>
+</body>
+</html>
